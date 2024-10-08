@@ -1,4 +1,3 @@
-// controllers/salesController.js
 const salesModel = require('../models/salesModel');
 
 async function obtenerVentas(req, res) {
