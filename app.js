@@ -30,7 +30,7 @@ const App = {
 
     // Swagger
     const specs = swaggerJsDoc(swaggerOptions);
-    app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
+    app.use('/docs', swaggerUI.serve, swaggerUI.setup(specs));
 
     // Rutas
     app.use('/api/auth', authRoutes);
@@ -59,7 +59,7 @@ const App = {
 
     app.use(handleError);
 
-    // Iniciar el servidor
+   // Iniciar el servidor
     async function startServer() {
       await connectDatabase();
       app.listen(PORT, () => {
