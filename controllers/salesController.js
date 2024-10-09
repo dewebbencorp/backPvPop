@@ -1,25 +1,35 @@
-const salesModel = require('../models/salesModel');
+import Venta from '../models/salesModel.js';
 
-async function obtenerVentas(req, res) {
+// Obtener todas las ventas
+export const obtenerVentas = async (req, res) => {
   try {
-    const ventas = await salesModel.obtenerVentas();
+    const ventas = await Venta.findAll();
     res.json(ventas);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Error obteniendo ventas: ' + error.message });
   }
-}
+};
 
-async function agregarVenta(req, res) {
+// Agregar una nueva venta
+export const agregarVenta = async (req, res) => {
+  const { articulo, cantidad, precio, descuento, total } = req.body;
+
   try {
-    const nuevaVenta = req.body;
-    const resultado = await salesModel.agregarVenta(nuevaVenta);
-    res.json(resultado);
+    const nuevaVenta = await Venta.create({
+      articulo,
+      cantidad,
+      precio,
+      descuento,
+      total,
+    });
+    res.status(201).json({ message: 'Venta agregada exitosamente', nuevaVenta });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Error agregando venta: ' + error.message });
   }
-}
+};
 
-module.exports = {
+// Exportación por defecto
+export default {
   obtenerVentas,
-  agregarVenta
+  agregarVenta,
 };

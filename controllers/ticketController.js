@@ -1,4 +1,4 @@
-const sql = require('mssql');
+import sql from 'mssql';
 
 // Obtener todos los tickets
 const getTickets = async (req, res) => {
@@ -48,9 +48,10 @@ const deleteTicket = async (req, res) => {
   }
 };
 
-module.exports = {
+// Exportación por defecto del controlador
+export default {
   getTickets,
   createTicket,
   updateTicket,
-  deleteTicket
+  deleteTicket,
 };
