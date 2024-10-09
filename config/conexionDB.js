@@ -1,26 +1,28 @@
-const {Sequelize} = require('sequelize');
-require('dotenv').config();
-const db = process.env.DB;
-const user = process.env.USER;
-const password = process.env.PASSWORD;
-const host = process.env.HOST;
-const sequelize = new Sequelize(db, user, password, {
-    host: host,
-    dialect: 'mssql'
-  });
+import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
 
-// Función para probar la conexión
-async function testConnection() {
-    try {
-      await sequelize.authenticate(); // Intenta autenticar la conexión
-      console.log('Conexión exitosa a la base de datos.');
-    } catch (error) {
-      console.error('No se pudo conectar a la base de datos:', error);
-    } finally {
-      await sequelize.close(); // Cierra la conexión después de la prueba
-    }
+dotenv.config();
+
+export const Connection = new Sequelize(
+  process.env.DB || '',
+  process.env.USER || '',
+  process.env.PASSWORD || '',
+  {
+    host: process.env.HOST || '',
+    port: process.env.PORT || '',
+    logging: false,
+    dialect: 'mssql',
   }
-  
-module.exports = {
-    testConnection
+);
+
+
+export const connectDB = async () => {
+  try {
+    await Connection.authenticate();
+    console.log('Conexión a la base de datos exitosa');
+  } catch (error) {
+    console.error('Error conectando a la base de datos:', error);
+  }
 };
+
+export default Connection;
