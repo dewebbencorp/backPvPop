@@ -16,7 +16,7 @@ const login = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    if (user.Activo !== true) {
+    if (!user.Activo) {
       return res.status(403).json({ message: 'El usuario no está activo' });
     }
 
@@ -45,7 +45,6 @@ const login = async (req, res) => {
       GlbActiva: user.ActArticulos,
     };
 
-    // Crear un token JWT
     const token = jwt.sign({ id: user.Clav_Usr, permisos }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.json({
@@ -55,8 +54,8 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error en el servidor', error });
+    console.error('Error en el proceso de autenticación:', error);
+    res.status(500).json({ message: 'Error en el servidor. Por favor, intente de nuevo más tarde.' });
   }
 };
 
