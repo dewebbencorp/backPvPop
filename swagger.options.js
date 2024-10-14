@@ -7,11 +7,13 @@ export const swaggerOptions = {
 		description: 'Documentación de la API de ventas',
 	  },
 	  servers: [
+
 		{
-		  url: 'http://localhost:3000/api', 
-		},
-	  ],
-	},
-	apis: ['./routes/*.js'],
+			url: 'http://localhost:3000',
+		}
+
+	],
+},
+apis: ['./routes/.js', './src/routes//.js'], 
   };
   

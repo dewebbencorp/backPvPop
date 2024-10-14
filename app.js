@@ -36,11 +36,8 @@ const App = {
 
     // Rutas sin autenticación
     app.use('/api/auth', authRoutes);
-
-    // Rutas protegidas por autenticación
-    app.use('/api/ticket', authMiddleware, ticketRoutes);
-    app.use('/api/sales', authMiddleware, salesRoutes);
-    app.use('/api/audit', authMiddleware, auditRoutes);
+    app.use('/api/tickets', ticketsRoute);
+    app.use('/api/sales', salesRoutes);
 
     app.use('/', (req, res) => {
       res.status(404).json({ message: 'Request not found' });
