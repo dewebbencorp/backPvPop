@@ -67,6 +67,7 @@ const App = {
     app.use(handleError);
 
     // Iniciar el servidor
+    // Iniciar el servidor
     async function startServer() {
       await connectDatabase();
       app.listen(PORT, () => {
@@ -79,4 +80,5 @@ const App = {
 };
 
 export default App;
+
 
