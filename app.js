@@ -5,8 +5,11 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import authMiddleware from './middlewares/authMiddleware.js';
 import authRoutes from './routes/auth.routes.js';
-import ticketsRoute from './routes/tickets.routes.js';
+import ticketRoutes from './routes/ticket.routes.js';
 import salesRoutes from './routes/sales.routes.js';
+import auditRoutes from './routes/audit.routes.js';
+
+// Base de datos
 import { connectDB } from './config/conexionDB.js';
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
@@ -35,10 +38,9 @@ const App = {
 
     // Rutas sin autenticación
     app.use('/api/auth', authRoutes);
-
-    // Rutas protegidas por autenticación
-    app.use('/api/tickets', authMiddleware, ticketsRoute);
-    app.use('/api/sales', authMiddleware, salesRoutes);
+    app.use('/api/ticket', ticketRoutes);
+    app.use('/api/sales', salesRoutes);
+    app.use('/api/audit', auditRoutes);
 
     app.use('/', (req, res) => {
       res.status(404).json({ message: 'Request not found' });
@@ -63,6 +65,7 @@ const App = {
     app.use(handleError);
 
     // Iniciar el servidor
+    // Iniciar el servidor
     async function startServer() {
       await connectDatabase();
       app.listen(PORT, () => {
@@ -75,3 +78,4 @@ const App = {
 };
 
 export default App;
+
