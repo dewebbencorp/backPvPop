@@ -1,5 +1,6 @@
 import { Connection } from '../config/conexionDB.js';
 
+// Función para obtener los detalles de un ticket por su número (No_Tick)
 const obtenerTicketPorNumero = async (No_Tick) => {
   try {
     const ticket = await Connection.query(
@@ -48,7 +49,7 @@ const obtenerTicketPorNumero = async (No_Tick) => {
     // Formatear la respuesta final
     return {
       ...ticket[0],
-      productos: productos,
+      productos,
       importe: ticket[0].total,
       descuento: 0.0,
       subtotal: ticket[0].total,
