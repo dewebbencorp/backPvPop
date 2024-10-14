@@ -22,10 +22,14 @@ const router = Router();
  *                 properties:
  *                   id:
  *                     type: integer
- *                   producto:
+ *                   articulo:
  *                     type: string
  *                   cantidad:
  *                     type: integer
+ *                   precio:
+ *                     type: number
+ *                   descuento:
+ *                     type: number
  *                   total:
  *                     type: number
  *       500:
@@ -47,10 +51,14 @@ router.get('/', salesController.obtenerVentas);
  *           schema:
  *             type: object
  *             properties:
- *               producto:
+ *               articulo:
  *                 type: string
  *               cantidad:
  *                 type: integer
+ *               precio:
+ *                 type: number
+ *               descuento:
+ *                 type: number
  *               total:
  *                 type: number
  *     responses:

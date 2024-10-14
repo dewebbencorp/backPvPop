@@ -1,6 +1,5 @@
 import Venta from '../models/salesModel.js';
 
-// Obtener todas las ventas
 export const obtenerVentas = async (req, res) => {
   try {
     const ventas = await Venta.findAll();
@@ -10,7 +9,6 @@ export const obtenerVentas = async (req, res) => {
   }
 };
 
-// Agregar una nueva venta
 export const agregarVenta = async (req, res) => {
   const { articulo, cantidad, precio, descuento, total } = req.body;
 
@@ -28,7 +26,6 @@ export const agregarVenta = async (req, res) => {
   }
 };
 
-// Exportación por defecto
 export default {
   obtenerVentas,
   agregarVenta,
