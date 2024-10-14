@@ -1,17 +1,13 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
 import morgan from 'morgan';
-
-// Rutas
+import authMiddleware from './middlewares/authMiddleware.js';
 import authRoutes from './routes/auth.routes.js';
 import ticketsRoute from './routes/tickets.routes.js';
 import salesRoutes from './routes/sales.routes.js';
-
-// Base de datos
 import { connectDB } from './config/conexionDB.js';
-
-// Swagger
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import { swaggerOptions } from './swagger.options.js';
@@ -23,19 +19,26 @@ const App = {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
-    // Middlewares
-    app.use(cors());
+    // Configurar CORS y cookies
+    app.use(cors({
+      origin: 'http://localhost:5173',  // Cambia esto por el origen de tu frontend
+      credentials: true,  // Permitir el envío de cookies y credenciales
+    }));
+
     app.use(express.json());
     app.use(morgan('dev'));
+    app.use(cookieParser());  // Usar cookie-parser
 
     // Swagger
     const specs = swaggerJsDoc(swaggerOptions);
     app.use('/docs', swaggerUI.serve, swaggerUI.setup(specs));
 
-    // Rutas
+    // Rutas sin autenticación
     app.use('/api/auth', authRoutes);
-    app.use('/api/tickets', ticketsRoute);
-    app.use('/api/sales', salesRoutes);
+
+    // Rutas protegidas por autenticación
+    app.use('/api/tickets', authMiddleware, ticketsRoute);
+    app.use('/api/sales', authMiddleware, salesRoutes);
 
     app.use('/', (req, res) => {
       res.status(404).json({ message: 'Request not found' });
@@ -59,7 +62,7 @@ const App = {
 
     app.use(handleError);
 
-   // Iniciar el servidor
+    // Iniciar el servidor
     async function startServer() {
       await connectDatabase();
       app.listen(PORT, () => {
