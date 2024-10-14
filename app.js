@@ -5,8 +5,9 @@ import morgan from 'morgan';
 
 // Rutas
 import authRoutes from './routes/auth.routes.js';
-import ticketsRoute from './routes/tickets.routes.js';
+import ticketRoutes from './routes/ticket.routes.js';
 import salesRoutes from './routes/sales.routes.js';
+import auditRoutes from './routes/audit.routes.js';
 
 // Base de datos
 import { connectDB } from './config/conexionDB.js';
@@ -34,8 +35,9 @@ const App = {
 
     // Rutas
     app.use('/api/auth', authRoutes);
-    app.use('/api/tickets', ticketsRoute);
+    app.use('/api/ticket', ticketRoutes);
     app.use('/api/sales', salesRoutes);
+    app.use('/api/audit', auditRoutes);
 
     app.use('/', (req, res) => {
       res.status(404).json({ message: 'Request not found' });
@@ -59,7 +61,7 @@ const App = {
 
     app.use(handleError);
 
-   // Iniciar el servidor
+    // Iniciar el servidor
     async function startServer() {
       await connectDatabase();
       app.listen(PORT, () => {
