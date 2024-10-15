@@ -1,16 +1,15 @@
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 
 const login = async (req, res) => {
-  const { CClave, CPassword, txtEmpresa, txtAlmacen } = req.body;
+  const { Clav_Usr, contrasenia } = req.body;
 
-  if (!CClave || !CPassword || !txtEmpresa || !txtAlmacen) {
+  if (!Clav_Usr || !contrasenia) {
     return res.status(400).json({ message: 'Por favor, llena todos los campos.' });
   }
 
   try {
-    const user = await User.findOne({ where: { Clav_Usr: CClave } });
+    const user = await User.findOne({ where: { Clav_Usr: Clav_Usr } });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -20,45 +19,60 @@ const login = async (req, res) => {
       return res.status(403).json({ message: 'El usuario no está activo' });
     }
 
-    const validPassword = await bcrypt.compare(CPassword, user.contrasenia);
-    if (!validPassword) {
+    if (contrasenia !== user.contrasenia) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    const permisos = {
-      SuperUsr: user.Super === true,
-      GlbMega: user.Mega === true,
-      GlbVeImpvtas: user.VeImpvtas === true,
-      GlbACambioPS: user.ACambioPS === true,
-      GlbModUC: user.AModCosto === true,
-      GlbAEdiAlmVend: user.AEdiAlmVend === true,
-      GlbAEditaCom: user.AEdiCom === true,
-      GlbModFams: user.AutMFSFL === true,
-      GlbModProvs: user.AutMProv === true,
-      GlbModVend: user.AutModVend === true,
-      GlbModAuditor: user.AutModAudit === true,
-      GlbADescProductos: user.ADescProductos === true,
-      GlbEntAlmacen: user.EntAlmacen === true,
-      GlbAccedeDepartamentos: user.AccedeDepartamentos === true,
-      GlbClave: CClave,
-      GlbNumero: user.No_Vend || 1,
-      GlbActiva: user.ActArticulos,
-    };
 
-    const token = jwt.sign({ id: user.Clav_Usr, permisos }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: user.Clav_Usr, permisos: user.permisos }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '2.5h' }
+    );
 
-    res.json({
-      message: 'Inicio de sesión exitoso',
-      token,
-      permisos,
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 2.5 * 60 * 60 * 1000,  // Expira en 2.5 horas
     });
 
+    res.json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
-    console.error('Error en el proceso de autenticación:', error);
-    res.status(500).json({ message: 'Error en el servidor. Por favor, intente de nuevo más tarde.' });
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+const verifyToken = (req, res) => {
+  try {
+    res.status(200).json({
+      message: 'Token válido',
+      user: req.user,
+    });
+  } catch (error) {
+    res.status(401).json({ message: 'Token inválido o expirado.' });
+  }
+};
+
+const logout = (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Sesión cerrada correctamente.' });
+};
+
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['Clav_Usr'],
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
 export default {
   login,
+  logout,
+  getUsers,
+  verifyToken,
 };

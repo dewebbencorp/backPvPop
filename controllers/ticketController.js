@@ -1,57 +1,36 @@
-import sql from 'mssql';
+import jwt from 'jsonwebtoken';
+import ticketService from '../services/ticketService.js';
 
-// Obtener todos los tickets
-const getTickets = async (req, res) => {
+// Obtener detalles de un ticket específico por su número de ticket (No_Tick)
+const obtenerTicketPorNumero = async (req, res) => {
+  const token = req.cookies.token; // Obtener el token de las cookies
+
+  if (!token) {
+    return res.status(401).json({ message: 'Acceso denegado. No se proporcionó un token.' });
+  }
+
   try {
-    const result = await sql.query('SELECT * FROM dbo.Ticket');
-    res.json(result.recordset);
+    // Verificar y decodificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+
+    // Obtener el número del ticket desde los parámetros
+    const { No_Tick } = req.params;
+
+    // Obtener los detalles del ticket desde el servicio
+    const ticket = await ticketService.obtenerTicketPorNumero(No_Tick);
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket no encontrado' });
+    }
+
+    // Responder con los datos del ticket
+    res.status(200).json(ticket);
   } catch (error) {
-    res.status(500).send('Error obteniendo los tickets');
+    res.status(500).json({ error: `Error obteniendo el ticket: ${error.message}` });
   }
 };
 
-// Crear un nuevo ticket
-const createTicket = async (req, res) => {
-  const { Clav_Alm, Clav_Empresa, No_Tick, Total_P } = req.body;
-
-  try {
-    await sql.query(`INSERT INTO dbo.Ticket (Clav_Alm, Clav_Empresa, No_Tick, Total_P) VALUES 
-    ('${Clav_Alm}', '${Clav_Empresa}', ${No_Tick}, ${Total_P})`);
-    res.status(201).send('Ticket creado con éxito');
-  } catch (error) {
-    res.status(500).send('Error creando el ticket');
-  }
-};
-
-// Actualizar un ticket
-const updateTicket = async (req, res) => {
-  const { id } = req.params;
-  const { Total_P } = req.body;
-
-  try {
-    await sql.query(`UPDATE dbo.Ticket SET Total_P = ${Total_P} WHERE No_Tick = ${id}`);
-    res.send('Ticket actualizado');
-  } catch (error) {
-    res.status(500).send('Error actualizando el ticket');
-  }
-};
-
-// Eliminar un ticket
-const deleteTicket = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await sql.query(`DELETE FROM dbo.Ticket WHERE No_Tick = ${id}`);
-    res.send('Ticket eliminado');
-  } catch (error) {
-    res.status(500).send('Error eliminando el ticket');
-  }
-};
-
-// Exportación por defecto del controlador
 export default {
-  getTickets,
-  createTicket,
-  updateTicket,
-  deleteTicket,
+  obtenerTicketPorNumero,
 };
