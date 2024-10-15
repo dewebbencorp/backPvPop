@@ -1,7 +1,6 @@
 import auditService from '../services/auditService.js';
-import { Connection } from '../config/conexionDB.js';
 
-export const obtenerAuditorias = async (req, res) => {
+const obtenerAuditorias = async (req, res) => {
   try {
     const auditorias = await auditService.obtenerTodasAuditorias();
     res.status(200).json(auditorias);
@@ -10,7 +9,7 @@ export const obtenerAuditorias = async (req, res) => {
   }
 };
 
-export const obtenerAuditoriaConTicket = async (req, res) => {
+const obtenerAuditoriaConTicket = async (req, res) => {
   const { No_Tick } = req.params;
 
   try {
@@ -24,64 +23,18 @@ export const obtenerAuditoriaConTicket = async (req, res) => {
   }
 };
 
-export const obtenerAuditoriasFiltradas = async (req, res) => {
+const obtenerAuditoriasFiltradas = async (req, res) => {
   const { movimiento, tipo, desde, hasta, cliente } = req.query;
 
-  let query = `
-    SELECT t.No_Tick AS remision,
-           t.Fecha_Vta AS fecha,
-           c.Nombre_Cliente AS cliente,
-           t.Tipo_Mov AS movimiento,
-           t.Tipo_Vta AS tipo,
-           t.Total_P AS total,
-           t.Cancelado AS cx,
-           t.Cortesia AS cort,
-           t.MontoBono AS com,
-           v.Nom_Vendedor AS vendedor
-    FROM Ticket t
-    JOIN Clientes c ON t.Clav_Cliente = c.Clav_Cliente
-    JOIN Vendedores v ON t.No_Vend = v.No_Vend
-    WHERE t.Total_P IS NOT NULL
-  `;
-
-  const replacements = {};
-
-  if (movimiento) {
-    query += ' AND t.Tipo_Mov = :movimiento';
-    replacements.movimiento = movimiento;
-  }
-  if (tipo) {
-    query += ' AND t.Tipo_Vta = :tipo';
-    replacements.tipo = tipo;
-  }
-  if (desde) {
-    query += ' AND t.Fecha_Vta >= :desde';
-    replacements.desde = desde;
-  }
-  if (hasta) {
-    query += ' AND t.Fecha_Vta <= :hasta';
-    replacements.hasta = hasta;
-  }
-  if (cliente) {
-    query += ' AND c.Nombre_Cliente LIKE :cliente';
-    replacements.cliente = `%${cliente}%`;
-  }
-
-  query += ' ORDER BY t.Fecha_Vta DESC';
-
   try {
-    const auditorias = await Connection.query(query, {
-      type: Connection.QueryTypes.SELECT,
-      replacements,
-    });
+    const auditorias = await auditService.obtenerAuditoriasFiltradas({ movimiento, tipo, desde, hasta, cliente });
     res.status(200).json(auditorias);
   } catch (error) {
     res.status(500).json({ error: 'Error obteniendo auditorías filtradas: ' + error.message });
   }
 };
 
-
-export const actualizarCX = async (req, res) => {
+const actualizarCX = async (req, res) => {
   const { No_Tick } = req.params;
   const { cx } = req.body;
 
@@ -100,5 +53,5 @@ export default {
   obtenerAuditorias,
   obtenerAuditoriaConTicket,
   obtenerAuditoriasFiltradas,
-  actualizarCX
+  actualizarCX,
 };

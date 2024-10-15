@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 
 const login = async (req, res) => {
+  console.log("entre");
+  
   const { Clav_Usr, contrasenia } = req.body;
 
   if (!Clav_Usr || !contrasenia) {
@@ -9,7 +11,8 @@ const login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ where: { Clav_Usr: Clav_Usr } });
+    const user = await User.findOne({ where: { Clav_Usr } });
+    console.log("usuario", user)
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -23,19 +26,17 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
+    const token = jwt.sign({ id: user.Clav_Usr, permisos: user.permisos }, process.env.JWT_SECRET, { expiresIn: '2.5h' });
 
-    const token = jwt.sign(
-      { id: user.Clav_Usr, permisos: user.permisos }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: '2.5h' }
-    );
+    
 
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
-      maxAge: 2.5 * 60 * 60 * 1000,  // Expira en 2.5 horas
+      maxAge: 2.5 * 60 * 60 * 1000,
     });
+    console.log("token", token)
 
     res.json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
@@ -59,20 +60,8 @@ const logout = (req, res) => {
   res.json({ message: 'Sesión cerrada correctamente.' });
 };
 
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.findAll({
-      attributes: ['Clav_Usr'],
-    });
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor' });
-  }
-};
-
 export default {
   login,
-  logout,
-  getUsers,
   verifyToken,
+  logout,
 };

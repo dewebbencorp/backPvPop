@@ -1,5 +1,6 @@
 import { Connection } from '../config/conexionDB.js';
 
+// Obtener todas las auditorías
 const obtenerTodasAuditorias = async () => {
   try {
     const auditorias = await Connection.query(
@@ -29,6 +30,7 @@ const obtenerTodasAuditorias = async () => {
   }
 };
 
+// Obtener auditoría por número de ticket
 const obtenerAuditoriaPorTicket = async (No_Tick) => {
   try {
     const auditoria = await Connection.query(
@@ -92,6 +94,59 @@ const obtenerAuditoriaPorTicket = async (No_Tick) => {
   }
 };
 
+const obtenerAuditoriasFiltradas = async ({ movimiento, tipo, desde, hasta, cliente }) => {
+  let query = `
+    SELECT t.No_Tick AS remision,
+           t.Fecha_Vta AS fecha,
+           c.Nombre_Cliente AS cliente,
+           t.Tipo_Mov AS movimiento,
+           t.Tipo_Vta AS tipo,
+           t.Total_P AS total,
+           t.Cancelado AS cx,
+           t.Cortesia AS cort,
+           t.MontoBono AS com,
+           v.Nom_Vendedor AS vendedor
+    FROM Ticket t
+    JOIN Clientes c ON t.Clav_Cliente = c.Clav_Cliente
+    JOIN Vendedores v ON t.No_Vend = v.No_Vend
+    WHERE t.Total_P IS NOT NULL
+  `;
+
+  const replacements = {};
+
+  if (movimiento) {
+    query += ' AND t.Tipo_Mov = :movimiento';
+    replacements.movimiento = movimiento;
+  }
+  if (tipo) {
+    query += ' AND t.Tipo_Vta = :tipo';
+    replacements.tipo = tipo;
+  }
+  if (desde) {
+    query += ' AND t.Fecha_Vta >= :desde';
+    replacements.desde = desde;
+  }
+  if (hasta) {
+    query += ' AND t.Fecha_Vta <= :hasta';
+    replacements.hasta = hasta;
+  }
+  if (cliente) {
+    query += ' AND c.Nombre_Cliente LIKE :cliente';
+    replacements.cliente = `%${cliente}%`;
+  }
+
+  try {
+    return await Connection.query(query, {
+      type: Connection.QueryTypes.SELECT,
+      replacements,
+    });
+  } catch (error) {
+    console.error('Error obteniendo auditorías filtradas:', error);
+    throw error;
+  }
+};
+
+// Actualizar el estado de cancelación (CX) de una auditoría
 const actualizarCX = async (No_Tick, cx) => {
   try {
     const [result] = await Connection.query(
@@ -105,7 +160,7 @@ const actualizarCX = async (No_Tick, cx) => {
         type: Connection.QueryTypes.UPDATE,
       }
     );
-    return result; // Retorna el número de filas afectadas
+    return result; // Número de filas afectadas
   } catch (error) {
     console.error('Error al actualizar CX:', error);
     throw error;
@@ -115,33 +170,6 @@ const actualizarCX = async (No_Tick, cx) => {
 export default {
   obtenerTodasAuditorias,
   obtenerAuditoriaPorTicket,
-  obtenerAuditoriasFiltradas: async (filters) => {
-    // Pasar filtros opcionales y construir consulta
-    let query = `
-      SELECT t.No_Tick AS remision,
-             t.Fecha_Vta AS fecha,
-             c.Nombre_Cliente AS cliente,
-             t.Tipo_Mov AS movimiento,
-             t.Tipo_Vta AS tipo,
-             t.Total_P AS total,
-             t.Cancelado AS cx,
-             t.Cortesia AS cort,
-             t.MontoBono AS com,
-             v.Nom_Vendedor AS vendedor
-      FROM Ticket t
-      JOIN Clientes c ON t.Clav_Cliente = c.Clav_Cliente
-      JOIN Vendedores v ON t.No_Vend = v.No_Vend
-      WHERE t.Total_P IS NOT NULL
-    `;
-    const replacements = {};
-    if (filters.movimiento) query += ' AND t.Tipo_Mov = :movimiento';
-    if (filters.tipo) query += ' AND t.Tipo_Vta = :tipo';
-    if (filters.desde) query += ' AND t.Fecha_Vta >= :desde';
-    if (filters.hasta) query += ' AND t.Fecha_Vta <= :hasta';
-    if (filters.cliente) query += ' AND c.Nombre_Cliente LIKE :cliente';
-    query += ' ORDER BY t.Fecha_Vta DESC';
-
-    return Connection.query(query, { type: Connection.QueryTypes.SELECT, replacements });
-  },
+  obtenerAuditoriasFiltradas,
   actualizarCX,
 };
