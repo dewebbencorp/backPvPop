@@ -1,24 +1,27 @@
 import { DataTypes } from 'sequelize';
-import { Connection } from '../config/conexionDB.js';
+import { conectarDB } from '../config/conexionDB.js';
 
-export const Vendedor = Connection.define(
-  'Vendedor',
-  {
-    No_Vend: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
+const defineVendedor = async () => {
+  const db = await conectarDB();
+  return db.define(
+    'Vendedor',
+    {
+      No_Vend: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+      },
+      Nom_Vendedor: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-    Nom_Vendedor: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-  },
-  {
-    tableName: 'Vendedores',
-    timestamps: false,
-    freezeTableName: true,
-  }
-);
+    {
+      tableName: 'Vendedores',
+      timestamps: false,
+      freezeTableName: true,
+    }
+  );
+};
 
-export default Vendedor;
+export default defineVendedor;

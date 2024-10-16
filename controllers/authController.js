@@ -1,9 +1,12 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/userModel.js';
+import bcrypt from 'bcrypt';
+import defineUser from '../models/userModel.js';
+
+const generarToken = (userId, permisos) => {
+  return jwt.sign({ id: userId, permisos }, process.env.JWT_SECRET, { expiresIn: '2.5h' });
+};
 
 const login = async (req, res) => {
-  console.log("entre");
-  
   const { Clav_Usr, contrasenia } = req.body;
 
   if (!Clav_Usr || !contrasenia) {
@@ -11,9 +14,9 @@ const login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ where: { Clav_Usr } });
-    console.log("usuario", user)
+    const User = await defineUser();
 
+    const user = await User.findOne({ where: { Clav_Usr } });
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
@@ -26,9 +29,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    const token = jwt.sign({ id: user.Clav_Usr, permisos: user.permisos }, process.env.JWT_SECRET, { expiresIn: '2.5h' });
-
-    
+    const token = generarToken(user.Clav_Usr, user.permisos);
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -36,23 +37,35 @@ const login = async (req, res) => {
       sameSite: 'Strict',
       maxAge: 2.5 * 60 * 60 * 1000,
     });
-    console.log("token", token)
 
-    res.json({ message: 'Inicio de sesión exitoso' });
+    return res.status(200).json({
+      login: true,
+      token,
+      mensaje: "Usuario logueado correctamente",
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor' });
+    console.error('Error en el controlador login:', error.message);
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
 const verifyToken = (req, res) => {
-  try {
+  const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Token no válido o expirado' });
+    }
     res.status(200).json({
       message: 'Token válido',
-      user: req.user,
+      user: decoded,
     });
-  } catch (error) {
-    res.status(401).json({ message: 'Token inválido o expirado.' });
-  }
+  });
 };
 
 const logout = (req, res) => {

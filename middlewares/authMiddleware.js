@@ -1,19 +1,16 @@
 import jwt from 'jsonwebtoken';
 
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.token;
+  const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ message: 'Acceso denegado. No se proporcionó un token.' });
-  }
+  if (!token) return res.status(401).json({ message: 'Acceso denegado' });
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Token no válido' });
+
+    req.user = user;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Token inválido o expirado.' });
-  }
+  });
 };
 
 export default authMiddleware;
