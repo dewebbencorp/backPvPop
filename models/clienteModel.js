@@ -1,24 +1,27 @@
 import { DataTypes } from 'sequelize';
-import { Connection } from '../config/conexionDB.js';
+import { conectarDB } from '../config/conexionDB.js';
 
-export const Cliente = Connection.define(
-  'Cliente',
-  {
-    Clav_Cliente: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      primaryKey: true,
+const defineCliente = async () => {
+  const db = await conectarDB();
+  return db.define(
+    'Cliente',
+    {
+      Clav_Cliente: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
+      },
+      Nombre_Cliente: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-    Nombre_Cliente: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-  },
-  {
-    tableName: 'Clientes',
-    timestamps: false,
-    freezeTableName: true,
-  }
-);
+    {
+      tableName: 'Clientes',
+      timestamps: false,
+      freezeTableName: true,
+    }
+  );
+};
 
-export default Cliente;
+export default defineCliente;

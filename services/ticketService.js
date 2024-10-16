@@ -1,9 +1,9 @@
-import { Connection } from '../config/conexionDB.js';
+import { conectarDB, cerrarDB } from '../config/conexionDB.js';
 
-// Función para obtener los detalles de un ticket por su número (No_Tick)
 const obtenerTicketPorNumero = async (No_Tick) => {
   try {
-    const ticket = await Connection.query(
+    const db = await conectarDB();
+    const ticket = await db.query(
       `
       SELECT t.No_Tick AS remision,
              t.Fecha_Vta AS fecha,
@@ -24,12 +24,12 @@ const obtenerTicketPorNumero = async (No_Tick) => {
       WHERE t.No_Tick = :No_Tick
       `,
       {
-        type: Connection.QueryTypes.SELECT,
+        type: db.QueryTypes.SELECT,
         replacements: { No_Tick },
       }
     );
 
-    const productos = await Connection.query(
+    const productos = await db.query(
       `
       SELECT dt.Desc_Art AS descripcion, 
              dt.Cant AS cantidad, 
@@ -39,7 +39,7 @@ const obtenerTicketPorNumero = async (No_Tick) => {
       WHERE dt.No_Tick = :No_Tick
       `,
       {
-        type: Connection.QueryTypes.SELECT,
+        type: db.QueryTypes.SELECT,
         replacements: { No_Tick },
       }
     );
@@ -62,6 +62,8 @@ const obtenerTicketPorNumero = async (No_Tick) => {
   } catch (error) {
     console.error('Error obteniendo ticket por número:', error);
     throw error;
+  } finally {
+    await cerrarDB();
   }
 };
 
