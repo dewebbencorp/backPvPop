@@ -63,31 +63,5 @@ router.post('/login', authController.login);
  */
 router.post('/logout', authController.logout);  // Manejamos el logout desde el controlador
 
-<<<<<<< HEAD
-/**
- * @swagger
- * /api/auth/users:
- *   get:
- *     summary: Obtener claves de usuarios
- *     description: Retorna una lista de claves de todos los usuarios
- *     tags: [Auth]
- *     responses:
- *       200:
- *         description: Lista de claves de usuarios obtenida exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   Clav_Usr:
- *                     type: string
- *       500:
- *         description: Error al obtener usuarios
- */
-router.get('/users', authController.getUsers);
-=======
->>>>>>> c1d4ec409e557b9b197e5f0d51cc14abc7e32617
 
 export default router;
