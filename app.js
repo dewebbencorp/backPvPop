@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import https from 'https';
+import fs from 'fs';
 import { swaggerOptions } from './swagger.options.js';
 import authMiddleware from './middlewares/authMiddleware.js';
 import authRoutes from './routes/auth.routes.js';
@@ -22,9 +24,10 @@ const App = {
 
     // Configuración de CORS y métodos permitidos
     app.use(cors({
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      origin: 'http://localhost:5173', // URL del frontend
+      credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }));
 
     // Log de solicitudes entrantes
@@ -57,10 +60,18 @@ const App = {
       res.status(500).json({ error: 'Error interno del servidor' });
     });
 
-    // Conectar a la base de datos y arrancar el servidor
+    // Conectar a la base de datos
     await conectarDB();
-    app.listen(PORT, () => {
-      console.log(`[API] Ejecutando en http://localhost:${PORT}`);
+
+    // Opciones HTTPS con certificados
+    const httpsOptions = {
+      key: fs.readFileSync('./server.key'),  // Ruta al archivo de clave privada
+      cert: fs.readFileSync('./server.cert') // Ruta al archivo de certificado
+    };
+
+    // Iniciar el servidor HTTPS
+    https.createServer(httpsOptions, app).listen(PORT, () => {
+      console.log(`Servidor HTTPS ejecutándose en https://localhost:${PORT}`);
     });
   },
 };
