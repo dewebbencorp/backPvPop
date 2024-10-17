@@ -15,21 +15,38 @@ import { conectarDB } from './config/conexionDB.js';
 import https from 'https'
 import fs from 'fs'
 dotenv.config();
-const options = {
-    key:fs.readFileSync('cert/server.key'),
-    cert:fs.readFileSync('cert/server.cert')
-}
+
 const App = {
   main: async () => {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
     // Configuración de CORS y métodos permitidos
+
+  
+    const isLocalhost = process.env.NODE_ENV !== 'production';
+    const allowedOrigins = isLocalhost
+      ? [
+          'https://localhost:5173',
+          'http://localhost:5173'
+        ]
+      : [
+          'https://192.168.1.6:5173',
+          'http://192.168.1.6:5173',
+          'http://192.168.1.127:5173',
+          'https://192.168.1.127:5173',
+          'https://192.168.1.6:8100',
+          'http://192.168.1.6:8100'
+        ];
+    
     app.use(cors({
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      origin: allowedOrigins,
+      credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }));
+    
+    
 
     // Log de solicitudes entrantes
     app.use((req, res, next) => {
@@ -61,14 +78,19 @@ const App = {
       res.status(500).json({ error: 'Error interno del servidor' });
     });
 
-    // Conectar a la base de datos y arrancar el servidor
+    // Conectar a la base de datos
     await conectarDB();
-    https.createServer(options , app).listen(3000,()=>{
-        console.log('Servidor HTTPS corriendo en https://localhost:3000');
-    })
-   /* app.listen(PORT, () => {
-      console.log(`[API] Ejecutando en http://localhost:${PORT}`);
-    });*/
+
+    // Opciones HTTPS con certificados
+    const httpsOptions = {
+      key: fs.readFileSync('cert/server.key'),  // Ruta al archivo de clave privada
+      cert: fs.readFileSync('cert/server.cert') // Ruta al archivo de certificado
+    };
+
+    // Iniciar el servidor HTTPS
+    https.createServer(httpsOptions, app).listen(PORT, () => {
+      console.log(`Servidor HTTPS ejecutándose en https://localhost:${PORT}`);
+    });
   },
 };
 

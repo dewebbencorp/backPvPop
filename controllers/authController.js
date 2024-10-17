@@ -69,9 +69,10 @@ const verifyToken = (req, res) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie('token');
-  res.json({ message: 'Sesión cerrada correctamente.' });
+  res.clearCookie('token'); // Borra la cookie del token
+  res.status(200).json({ message: "Logout exitoso" }); // Envía una respuesta exitosa
 };
+
 
 export default {
   login,

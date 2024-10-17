@@ -9,7 +9,7 @@ export const swaggerOptions = {
 		servers: [
 
 			{
-				url: 'http://localhost:3000',
+				url: 'https://192.168.1.6:3000',
 			}
 
 		],

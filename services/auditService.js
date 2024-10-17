@@ -100,8 +100,89 @@ const obtenerAuditoriaPorTicket = async (No_Tick) => {
   }
 };
 
+const obtenerAuditoriasFiltradas = async ({ movimiento, tipo, desde, hasta, cliente }) => {
+  let query = `
+    SELECT t.No_Tick AS remision,
+           t.Fecha_Vta AS fecha,
+           c.Nombre_Cliente AS cliente,
+           t.Tipo_Mov AS movimiento,
+           t.Tipo_Vta AS tipo,
+           t.Total_P AS total,
+           t.Cancelado AS cx,
+           t.Cortesia AS cort,
+           t.MontoBono AS com,
+           v.Nom_Vendedor AS vendedor
+    FROM Ticket t
+    JOIN Clientes c ON t.Clav_Cliente = c.Clav_Cliente
+    JOIN Vendedores v ON t.No_Vend = v.No_Vend
+    WHERE t.Total_P IS NOT NULL
+  `;
+
+  const replacements = {};
+
+  if (movimiento) {
+    query += ' AND t.Tipo_Mov = :movimiento';
+    replacements.movimiento = movimiento;
+  }
+  if (tipo) {
+    query += ' AND t.Tipo_Vta = :tipo';
+    replacements.tipo = tipo;
+  }
+  if (desde) {
+    query += ' AND t.Fecha_Vta >= :desde';
+    replacements.desde = desde;
+  }
+  if (hasta) {
+    query += ' AND t.Fecha_Vta <= :hasta';
+    replacements.hasta = hasta;
+  }
+  if (cliente) {
+    query += ' AND c.Nombre_Cliente LIKE :cliente';
+    replacements.cliente = `%${cliente}%`;
+  }
+
+  try {
+    const db = await conectarDB(); // Conexión a la base de datos
+    const auditorias = await db.query(query, {
+      type: db.QueryTypes.SELECT,
+      replacements,
+    });
+    return auditorias;
+  } catch (error) {
+    console.error('Error obteniendo auditorías filtradas:', error);
+    throw error;
+  } finally {
+    await cerrarDB(); // Cerrar la conexión
+  }
+};
+
+// Actualizar el estado de cancelación (CX) de una auditoría
+const actualizarCX = async (No_Tick, cx) => {
+  try {
+    const db = await conectarDB(); // Conexión a la base de datos
+    const [result] = await db.query(
+      `
+      UPDATE Ticket
+      SET Cancelado = :cx
+      WHERE No_Tick = :No_Tick
+      `,
+      {
+        replacements: { No_Tick, cx },
+        type: db.QueryTypes.UPDATE,
+      }
+    );
+    return result; // Número de filas afectadas
+  } catch (error) {
+    console.error('Error al actualizar CX:', error);
+    throw error;
+  } finally {
+    await cerrarDB(); // Cerrar la conexión
+  }
+};
+
 export default {
   obtenerTodasAuditorias,
   obtenerAuditoriaPorTicket,
-  // Otros métodos exportados aquí
+  obtenerAuditoriasFiltradas,
+  actualizarCX,
 };
