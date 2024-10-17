@@ -3,17 +3,17 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import swaggerUI from 'swagger-ui-express';
+import swaggerJsDoc from 'swagger-jsdoc';
+import https from 'https';
+import fs from 'fs';
+import { swaggerOptions } from './swagger.options.js';
 import authMiddleware from './middlewares/authMiddleware.js';
 import authRoutes from './routes/auth.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
 import salesRoutes from './routes/sales.routes.js';
 import auditRoutes from './routes/audit.routes.js';
-
-// Base de datos
-import { connectDB } from './config/conexionDB.js';
-import swaggerUI from 'swagger-ui-express';
-import swaggerJsDoc from 'swagger-jsdoc';
-import { swaggerOptions } from './swagger.options.js';
+import { conectarDB } from './config/conexionDB.js';
 
 dotenv.config();
 
@@ -22,63 +22,58 @@ const App = {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
-    // Configurar CORS y cookies
+    // Configuración de CORS y métodos permitidos
     app.use(cors({
-      origin: 'http://localhost:5173',  // Cambia esto por el origen de tu frontend
-      credentials: true,  // Permitir el envío de cookies y credenciales
+      origin: 'http://localhost:5173', // URL del frontend
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }));
 
+    // Log de solicitudes entrantes
+    app.use((req, res, next) => {
+      console.log(`Solicitado: ${req.method} ${req.url}`);
+      next();
+    });
+
+    // Middlewares
     app.use(express.json());
     app.use(morgan('dev'));
-    app.use(cookieParser());  // Usar cookie-parser
+    app.use(cookieParser());
 
-    // Swagger
+    // Documentación de API con Swagger
     const specs = swaggerJsDoc(swaggerOptions);
     app.use('/docs', swaggerUI.serve, swaggerUI.setup(specs));
 
-    // Rutas sin autenticación
+    // Rutas de autenticación y protegidas
     app.use('/api/auth', authRoutes);
-
-    // Rutas protegidas por autenticación
     app.use('/api/ticket', authMiddleware, ticketRoutes);
     app.use('/api/sales', authMiddleware, salesRoutes);
     app.use('/api/audit', authMiddleware, auditRoutes);
 
-    app.use('/', (req, res) => {
-      res.status(404).json({ message: 'Request not found' });
+    // Ruta 404 para solicitudes desconocidas
+    app.use((req, res) => res.status(404).json({ message: 'Request not found' }));
+
+    // Middleware global para manejo de errores
+    app.use((err, req, res, next) => {
+      console.error(err);
+      res.status(500).json({ error: 'Error interno del servidor' });
     });
 
     // Conectar a la base de datos
-    async function connectDatabase() {
-      try {
-        await connectDB();
-        console.log('[OK] Conexión establecida con la base de datos');
-      } catch (error) {
-        console.error('[ERROR] No se pudo conectar con la base de datos', error);
-      }
-    }
+    await conectarDB();
 
-    // Middleware para manejo de errores
-    function handleError(err, req, res, next) {
-      console.error(err);
-      res.status(500).json({ error: 'Error interno del servidor' });
-    }
+    // Opciones HTTPS con certificados
+    const httpsOptions = {
+      key: fs.readFileSync('./server.key'),  // Ruta al archivo de clave privada
+      cert: fs.readFileSync('./server.cert') // Ruta al archivo de certificado
+    };
 
-    app.use(handleError);
-
-    // Iniciar el servidor
-    // Iniciar el servidor
-    async function startServer() {
-      await connectDatabase();
-      app.listen(PORT, () => {
-        console.log(`[API] se ejecuta en http://localhost:${PORT}`);
-      });
-    }
-
-    startServer();
+    // Iniciar el servidor HTTPS
+    https.createServer(httpsOptions, app).listen(PORT, () => {
+      console.log(`Servidor HTTPS ejecutándose en https://localhost:${PORT}`);
+    });
   },
 };
 
 export default App;
-
-
