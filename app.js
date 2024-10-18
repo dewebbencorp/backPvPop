@@ -12,41 +12,25 @@ import ticketRoutes from './routes/ticket.routes.js';
 import salesRoutes from './routes/sales.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import { conectarDB } from './config/conexionDB.js';
-import https from 'https'
-import fs from 'fs'
+import https from 'https';
+import http from 'http';
+import fs from 'fs';
+
 dotenv.config();
 
 const App = {
   main: async () => {
     const app = express();
     const PORT = process.env.PORT || 3000;
+    const HTTP_PORT = process.env.HTTP_PORT || 8080;
 
-    // Configuración de CORS y métodos permitidos
-
-  
-    const isLocalhost = process.env.NODE_ENV !== 'production';
-    const allowedOrigins = isLocalhost
-      ? [
-          'https://localhost:5173',
-          'http://localhost:5173'
-        ]
-      : [
-          'https://192.168.1.6:5173',
-          'http://192.168.1.6:5173',
-          'http://192.168.1.127:5173',
-          'https://192.168.1.127:5173',
-          'https://192.168.1.6:8100',
-          'http://192.168.1.6:8100'
-        ];
-    
+    // Configuración de CORS para permitir todos los orígenes
     app.use(cors({
-      origin: allowedOrigins,
+      origin: ['http://localhost:8100','http://192.168.1.71:8100'], // Permitir todos los orígenes
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }));
-    
-    
 
     // Log de solicitudes entrantes
     app.use((req, res, next) => {
@@ -65,9 +49,9 @@ const App = {
 
     // Rutas de autenticación y protegidas
     app.use('/api/auth', authRoutes);
-    app.use('/api/ticket', authMiddleware, ticketRoutes);
-    app.use('/api/sales', authMiddleware, salesRoutes);
-    app.use('/api/audit', authMiddleware, auditRoutes);
+    app.use('/api/ticket', ticketRoutes);
+    app.use('/api/sales',  salesRoutes);
+    app.use('/api/audit',  auditRoutes);
 
     // Ruta 404 para solicitudes desconocidas
     app.use((req, res) => res.status(404).json({ message: 'Request not found' }));
@@ -90,6 +74,11 @@ const App = {
     // Iniciar el servidor HTTPS
     https.createServer(httpsOptions, app).listen(PORT, () => {
       console.log(`Servidor HTTPS ejecutándose en https://localhost:${PORT}`);
+    });
+
+    // Iniciar servidor HTTP
+    http.createServer(app).listen(HTTP_PORT, () => {
+      console.log(`Servidor HTTP ejecutándose en http://localhost:${HTTP_PORT}`);
     });
   },
 };

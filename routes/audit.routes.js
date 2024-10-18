@@ -17,7 +17,7 @@ const router = Router();
  *       401:
  *         description: Token inválido o no proporcionado
  */
-router.get('/', authMiddleware, auditController.obtenerAuditorias);
+router.get('/', auditController.obtenerAuditorias);
 
 /**
  * @swagger
@@ -32,7 +32,7 @@ router.get('/', authMiddleware, auditController.obtenerAuditorias);
  *       401:
  *         description: Token inválido o no proporcionado
  */
-router.get('/filtro', authMiddleware, auditController.obtenerAuditoriasFiltradas);
+router.get('/filtro', auditController.obtenerAuditoriasFiltradas);
 
 /**
  * @swagger
@@ -54,7 +54,7 @@ router.get('/filtro', authMiddleware, auditController.obtenerAuditoriasFiltradas
  *       401:
  *         description: Token inválido o no proporcionado
  */
-router.get('/:No_Tick', authMiddleware, auditController.obtenerAuditoriaConTicket);
+router.get('/:No_Tick', auditController.obtenerAuditoriaConTicket);
 
 /**
  * @swagger
@@ -86,6 +86,6 @@ router.get('/:No_Tick', authMiddleware, auditController.obtenerAuditoriaConTicke
  *       401:
  *         description: Token inválido o no proporcionado
  */
-router.patch('/:No_Tick/cx', authMiddleware, auditController.actualizarCX);
+router.patch('/:No_Tick/cx', auditController.actualizarCX);
 
 export default router;

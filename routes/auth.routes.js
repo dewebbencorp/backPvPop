@@ -17,7 +17,7 @@ const router = Router();
  *       401:
  *         description: El token no es válido o ha expirado.
  */
-router.get('/verify-token', authMiddleware, authController.verifyToken);
+router.get('/verify-token',  authController.verifyToken);
 
 /**
  * @swagger
@@ -62,6 +62,36 @@ router.post('/login', authController.login);
  *         description: Cierre de sesión exitoso.
  */
 router.post('/logout', authController.logout);  // Manejamos el logout desde el controlador
+/**
+ * @swagger
+ * /api/auth/confirm-auth:
+ *   post:
+ *     summary: Confirmar autorización de cierre de venta
+ *     description: Verifica si las credenciales del usuario son correctas para autorizar el cierre de la venta.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - Clav_Usr
+ *               - contrasenia
+ *             properties:
+ *               Clav_Usr:
+ *                 type: string
+ *               contrasenia:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Autorización exitosa.
+ *       401:
+ *         description: Contraseña incorrecta.
+ *       404:
+ *         description: Usuario no encontrado.
+ */
+router.post('/confirm-auth', authController.confirmarAutorizacion);
 
 
 export default router;

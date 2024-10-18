@@ -71,6 +71,6 @@ const router = Router();
  *       500:
  *         description: Error al obtener el ticket
  */
-router.get('/:No_Tick', authMiddleware, ticketController.obtenerTicketPorNumero); // Usar el middleware de autenticación
+router.get('/:No_Tick', ticketController.obtenerTicketPorNumero); // Usar el middleware de autenticación
 
 export default router;

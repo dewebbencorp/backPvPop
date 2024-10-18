@@ -7,6 +7,7 @@ const generarToken = (userId, permisos) => {
 };
 
 const login = async (req, res) => {
+  
   const { Clav_Usr, contrasenia } = req.body;
 
   if (!Clav_Usr || !contrasenia) {
@@ -73,9 +74,34 @@ const logout = (req, res) => {
   res.status(200).json({ message: "Logout exitoso" }); // Envía una respuesta exitosa
 };
 
+const confirmarAutorizacion = async (req, res) => {
+  const { Clav_Usr, contrasenia } = req.body;
 
+  try {
+    // Obtener el token de las cookies
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    // Verificar el token y extraer las credenciales del usuario
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Comparar el usuario y la contraseña del token con los ingresados
+    if (Clav_Usr !== decoded.id || contrasenia !== decoded.contrasenia) {
+      return res.status(401).json({ message: 'Credenciales incorrectas' });
+    }
+
+    // Si las credenciales coinciden, la autorización es exitosa
+    res.status(200).json({ message: 'Autorización exitosa' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor o token inválido' });
+  }
+};
 export default {
   login,
   verifyToken,
   logout,
+  confirmarAutorizacion
 };
